@@ -21,8 +21,8 @@ if [ $? -ne 0 ]; then
     # OpenVPN-i disable etmek
    # /etc/init.d/openvpn stop
    # /etc/init.d/openvpnc stop
-    /etc/init.d/openvpn disable
-    /etc/init.d/openvpnc disable
+   # /etc/init.d/openvpn disable
+   # /etc/init.d/openvpnc disable
     
     # Internet gelýänçä garaşmak
     until ping -c 1 www.google.com > /dev/null 2>&1; do
@@ -105,17 +105,17 @@ if [ $? -ne 0 ]; then
     echo "Konfigurasiýa täzelendi."
 
             # Network interfeysi restart
-            /etc/init.d/network restart
+            /etc/init.d/network start
             echo "Network interfeysi tazelenyar..."
             
             # OpenVPN-ýi täzeden başlatmak
            # /etc/init.d/openvpn restart
            # /etc/init.d/openvpnc restart
-            /etc/init.d/openvpn start
-            /etc/init.d/openvpnc start
-            /etc/init.d/openvpn enable
-            /etc/init.d/openvpnc enable
-            echo "OpenVPN täzeden başlatyldy."
+           # /etc/init.d/openvpn start
+           # /etc/init.d/openvpnc start
+           # /etc/init.d/openvpn enable
+           # /etc/init.d/openvpnc enable
+           # echo "OpenVPN täzeden başlatyldy."
 
            # ifup lan
         else
@@ -202,16 +202,16 @@ else
     echo "Konfigurasiýa täzelendi."
 
             # Network interfeysi restart
-            /etc/init.d/network restart
+            /etc/init.d/network start
             echo "Network interfeysi tazelenyar..."
             
             # OpenVPN-ýi täzeden başlatmak
            # /etc/init.d/openvpn restart
            # /etc/init.d/openvpn start
-             /etc/init.d/openvpn start
-             /etc/init.d/openvpnc start
-             /etc/init.d/openvpn enable
-             /etc/init.d/openvpnc enable
+           #  /etc/init.d/openvpn start
+            # /etc/init.d/openvpnc start
+            # /etc/init.d/openvpn enable
+            # /etc/init.d/openvpnc enable
 
             echo "OpenVPN täzeden başlatyldy."
 
