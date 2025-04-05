@@ -125,8 +125,8 @@ if [ $? -ne 0 ]; then
            # /etc/init.d/network restart
            # echo "Network interfeysi tazelenyar..."
             
-            # OpenVPN-ýi täzeden başlatmak
-           # /etc/init.d/openvpn restart
+             OpenVPN-ýi täzeden başlatmak
+            /etc/init.d/openvpnc restart
            # /etc/init.d/openvpnc restart
            # /etc/init.d/openvpn start
            # /etc/init.d/openvpnc start
@@ -240,8 +240,8 @@ else
             #/etc/init.d/network start
             #echo "Network interfeysi tazelenyar..."
             
-            # OpenVPN-ýi täzeden başlatmak
-           # /etc/init.d/openvpn restart
+             OpenVPN-ýi täzeden başlatmak
+            /etc/init.d/openvpnc restart
            # /etc/init.d/openvpn start
             # /etc/init.d/openvpn start
             # /etc/init.d/openvpnc start
