@@ -71,8 +71,8 @@ if [ $? -ne 0 ]; then
             # "explicit-exit-notify" bar bolsa, ony poz
     sed -i '/explicit-exit-notify/d' "$CONFIG_FILE"
 
-            # "scramble xormask ddFF" bar bolsa, ony poz
-    sed -i '/scramble xormask ddFF/d' "$CONFIG_FILE"
+            # "scramble xormask 5" bar bolsa, ony poz
+    sed -i '/scramble xormask 5/d' "$CONFIG_FILE"
 
             # "proto tcp-client" bar bolsa, hic zat edilmeyar, yok bolsa 2-nji setir hokmunde gosulyar
         if ! grep -q "^proto tcp-client" "$CONFIG_FILE"; then
@@ -185,8 +185,8 @@ else
             # "explicit-exit-notify" bar bolsa, ony poz
     sed -i '/explicit-exit-notify/d' "$CONFIG_FILE"
 
-            # "scramble xormask ddFF" bar bolsa, ony poz
-    sed -i '/scramble xormask ddFF/d' "$CONFIG_FILE"
+            # "scramble xormask 5" bar bolsa, ony poz
+    sed -i '/scramble xormask 5/d' "$CONFIG_FILE"
 
             # "proto tcp-client" bar bolsa, hic zat edilmeyar, yok bolsa 2-nji setir hokmunde gosulyar
         if ! grep -q "^proto tcp-client" "$CONFIG_FILE"; then
