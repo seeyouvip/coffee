@@ -10,18 +10,18 @@ CONFIG_FILE="/etc/config/network"
 #COOKIE="NID=NYjjcwfdlNepOTQi_S2FpJRvPh7cKMJgXzVrrON"
 
 # === INTERNETIŇ BARLANYŞY ===
-ping -c 3 www.google.com > /dev/null 2>&1 && exit 0  # Internet bar bolsa, skript durýar
+#ping -c 3 www.google.com > /dev/null 2>&1 && exit 0  # Internet bar bolsa, skript durýar
 
-echo "Interfeysi öçürmek başlady..."
+#echo "Interfeysi öçürmek başlady..."
 
 # === TORBANY ÖZGERDIP BOLMAK ===
-ifdown amnezia
-ifdown lan
-ifup lan
-ifdown wan
-ifup wan
-echo "Interfeys açyldy"
-sleep 20  # Interfeysi açandan soň 35 sekunt garaşylýar
+#ifdown amnezia
+#ifdown lan
+#ifup lan
+#ifdown wan
+#ifup wan
+#echo "Interfeys açyldy"
+#sleep 20  # Interfeysi açandan soň 35 sekunt garaşylýar
 
 # === GOOGLE DRIVE-DAN IP ALYP BOLMAK ===
 echo "Google Drive-dan faýl almak synanyşylýar..."
