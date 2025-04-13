@@ -8,33 +8,70 @@ IHEART_URL="http://iheart-filepicker.me/sstp_ipMR.txt"
 TMP_FILE="/tmp/new_ip.txt"
 CONFIG_FILE="/etc/config/network"
 
+# === CONFIG-DAKY HÄZIRKI IP/DOMAIN OKAÝARYS ===
+CURRENT_HOST=$(grep "option server" "$CONFIG_FILE" | awk -F"'" '{print $2}')
 
-# === SKRIPTI ALÝANÇA SYNANYŞYLYAR ===
-until download_script; do
-    echo "Skript alyp bolmady — täzeden synanşylýar..."
-    sleep 2
-done
+# === FAÝLDAN TÄZE IP/DOMAIN ALMAK ===
+download_ip_file() {
+    echo "[INFO] Täze IP ýa domain faýly alýar..."
 
-# === SKRIPTI IŞLETMEK ===
-chmod +x "$LOCAL_SCRIPT"
-NEW_IP=$($LOCAL_SCRIPT)
+    for URL in "$GITHUB_URL" "$GOOGLE_DRIVE_URL" "$DROPBOX_URL" "$IHEART_URL"; do
+        curl -s -L "$URL" -o "$TMP_FILE"
+        if [ $? -eq 0 ] && grep -qE '[a-zA-Z0-9.-]' "$TMP_FILE"; then
+            echo "[OK] Alnan çeşme: $URL"
+            return 0
+        fi
+    done
 
-# Täze skript täze IP görkezýär diýip garaşylýar — ýazgy görnüşi: "Täze IP: 1.2.3.4"
-NEW_IP=$(echo "$NEW_IP" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
+    echo "[ERROR] Faýl hiç bir çeşmeden alynmady."
+    return 1
+}
 
-if [ -z "$NEW_IP" ]; then
-    echo "[ERROR] Täze IP anyklanyp bilinmedi!"
+# === ALMAGA SYNANŞYLÝAR ===
+if ! download_ip_file; then
     exit 1
 fi
 
-echo "[INFO] Täze IP: $NEW_IP"
-echo "[INFO] Config faýlynda option server täzelenýär..."
+# === TÄZE IP/DOMAIN ALÝARYS ===
+NEW_HOST=$(grep -oE '[a-zA-Z0-9.-]+' "$TMP_FILE" | head -n1)
 
-# === option server ýazgysyny täze IP bilen çalyşmak ===
-sed -i "s/option server '.*'/option server '$NEW_IP'/" "$CONFIG_FILE"
+if [ -z "$NEW_HOST" ]; then
+    echo "[ERROR] Täze IP ýa domain tapylmady!"
+    exit 1
+fi
 
-echo "[OK] Täzelenme üstünlikli ýerine ýetirildi."
+echo "[INFO] Täze host: $NEW_HOST"
 
-# === ARASSALYK ===
-rm -f "$LOCAL_SCRIPT" "$TMP_FILE"
+# === EGER DOMAIN BOLSA IP-SINI TAPÝARYS ===
+if echo "$NEW_HOST" | grep -qE '[a-zA-Z]'; then
+    RESOLVED_NEW=$(nslookup "$NEW_HOST" | awk '/^Address: /{print $2}' | tail -n1)
+else
+    RESOLVED_NEW="$NEW_HOST"
+fi
+
+if echo "$CURRENT_HOST" | grep -qE '[a-zA-Z]'; then
+    RESOLVED_CURRENT=$(nslookup "$CURRENT_HOST" | awk '/^Address: /{print $2}' | tail -n1)
+else
+    RESOLVED_CURRENT="$CURRENT_HOST"
+fi
+
+# === EGER TÄZE IP DOMAINDEN TAPYLAN BOLSA — WE ÜÝTGEŞIK ÝOK BOLSA ===
+if [ "$RESOLVED_NEW" = "$RESOLVED_CURRENT" ]; then
+    echo "[OK] Täze host bilen häzirki birmeňzeş — täzeläp gerek däl."
+    exit 0
+fi
+
+# === CONFIG FAÝLYNY TÄZELÄÝÄRIS ===
+if grep -q "option server" "$CONFIG_FILE"; then
+    sed -i "s/option server '.*'/option server '$NEW_HOST'/" "$CONFIG_FILE"
+    echo "[OK] Config täzelendi: option server '$NEW_HOST'"
+else
+    echo "option server '$NEW_HOST'" >> "$CONFIG_FILE"
+    echo "[OK] option server ýazgysy goşuldy."
+fi
+
+# === NETWORK RESTART ===
+echo "[INFO] Täzelenme soňy — network restart edilýär..."
+/etc/init.d/network restart
+
 echo "✅ Tamamlandy."
