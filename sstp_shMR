@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# === KONFIGURASIÝA ===
+DROPBOX_URL="https://www.dropbox.com/scl/fi/cofu1c7mm02i0vujbb4co/sstp_ipMR.txt?rlkey=35cgbt5yjjw71fzbhrtqkptsu&st=ki3hgn21&dl=1"
+GOOGLE_DRIVE_URL="https://drive.google.com/uc?export=download&id=1F6A2ec-6xf6SMGEoSTDw1pKrxwevOTmw"
+GITHUB_URL="https://raw.githubusercontent.com/seeyouvip/coffee/main/sstp_ipMR"
+IHEART_URL="http://iheart-filepicker.me/sstp_ipMR.txt"
+TMP_FILE="/tmp/new_ip.txt"
+CONFIG_FILE="/etc/config/network"
+
+
+# === SKRIPTI ALÝANÇA SYNANYŞYLYAR ===
+until download_script; do
+    echo "Skript alyp bolmady — täzeden synanşylýar..."
+    sleep 2
+done
+
+# === SKRIPTI IŞLETMEK ===
+chmod +x "$LOCAL_SCRIPT"
+NEW_IP=$($LOCAL_SCRIPT)
+
+# Täze skript täze IP görkezýär diýip garaşylýar — ýazgy görnüşi: "Täze IP: 1.2.3.4"
+NEW_IP=$(echo "$NEW_IP" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
+
+if [ -z "$NEW_IP" ]; then
+    echo "[ERROR] Täze IP anyklanyp bilinmedi!"
+    exit 1
+fi
+
+echo "[INFO] Täze IP: $NEW_IP"
+echo "[INFO] Config faýlynda option server täzelenýär..."
+
+# === option server ýazgysyny täze IP bilen çalyşmak ===
+sed -i "s/option server '.*'/option server '$NEW_IP'/" "$CONFIG_FILE"
+
+echo "[OK] Täzelenme üstünlikli ýerine ýetirildi."
+
+# === ARASSALYK ===
+rm -f "$LOCAL_SCRIPT" "$TMP_FILE"
+echo "✅ Tamamlandy."
