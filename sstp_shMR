@@ -10,29 +10,28 @@ CONFIG_FILE="/etc/config/network"
 
 # === CONFIG-DAKY HÄZIRKI IP/DOMAIN OKAÝARYS ===
 CURRENT_HOST=$(grep "option server" "$CONFIG_FILE" | awk -F"'" '{print $2}')
+echo "[INFO] Häzirki host: $CURRENT_HOST"
 
 # === FAÝLDAN TÄZE IP/DOMAIN ALMAK ===
 download_ip_file() {
-    echo "[INFO] Täze IP ýa domain faýly alýar..."
-
     for URL in "$GITHUB_URL" "$GOOGLE_DRIVE_URL" "$DROPBOX_URL" "$IHEART_URL"; do
+        echo "[INFO] Synanyşylýar: $URL"
         curl -s -L "$URL" -o "$TMP_FILE"
-        if [ $? -eq 0 ] && grep -qE '[a-zA-Z0-9.-]' "$TMP_FILE"; then
+        if [ $? -eq 0 ] && grep -qE '[a-zA-Z0-9.-]+' "$TMP_FILE"; then
             echo "[OK] Alnan çeşme: $URL"
             return 0
         fi
     done
-
-    echo "[ERROR] Faýl hiç bir çeşmeden alynmady."
+    echo "[ERROR] Täze IP ýa domain alynmady!"
     return 1
 }
 
-# === ALMAGA SYNANŞYLÝAR ===
+# === ALMAGA SYNANŞYLYAR ===
 if ! download_ip_file; then
     exit 1
 fi
 
-# === TÄZE IP/DOMAIN ALÝARYS ===
+# === TÄZE HOST ALÝARYS ===
 NEW_HOST=$(grep -oE '[a-zA-Z0-9.-]+' "$TMP_FILE" | head -n1)
 
 if [ -z "$NEW_HOST" ]; then
@@ -42,22 +41,21 @@ fi
 
 echo "[INFO] Täze host: $NEW_HOST"
 
-# === EGER DOMAIN BOLSA IP-SINI TAPÝARYS ===
-if echo "$NEW_HOST" | grep -qE '[a-zA-Z]'; then
-    RESOLVED_NEW=$(nslookup "$NEW_HOST" | awk '/^Address: /{print $2}' | tail -n1)
-else
-    RESOLVED_NEW="$NEW_HOST"
-fi
+# === IP ÇÖZGÜT — DOMAINDEN IP TAPÝARYS ===
+resolve_host() {
+    if echo "$1" | grep -qE '[a-zA-Z]'; then
+        nslookup "$1" | awk '/^Address: /{print $2}' | tail -n1
+    else
+        echo "$1"
+    fi
+}
 
-if echo "$CURRENT_HOST" | grep -qE '[a-zA-Z]'; then
-    RESOLVED_CURRENT=$(nslookup "$CURRENT_HOST" | awk '/^Address: /{print $2}' | tail -n1)
-else
-    RESOLVED_CURRENT="$CURRENT_HOST"
-fi
+RESOLVED_NEW=$(resolve_host "$NEW_HOST")
+RESOLVED_CURRENT=$(resolve_host "$CURRENT_HOST")
 
-# === EGER TÄZE IP DOMAINDEN TAPYLAN BOLSA — WE ÜÝTGEŞIK ÝOK BOLSA ===
 if [ "$RESOLVED_NEW" = "$RESOLVED_CURRENT" ]; then
-    echo "[OK] Täze host bilen häzirki birmeňzeş — täzeläp gerek däl."
+    echo "[OK] Täze host bilen häzirki IP birmeňzeş — täzeläp gerek däl."
+    rm -f "$TMP_FILE"
     exit 0
 fi
 
@@ -70,8 +68,10 @@ else
     echo "[OK] option server ýazgysy goşuldy."
 fi
 
-# === NETWORK RESTART ===
-echo "[INFO] Täzelenme soňy — network restart edilýär..."
+# === NETWORK ÝATDAN GEÇIRMEK ===
+echo "[INFO] Network täzeden başlanylýar..."
 /etc/init.d/network restart
 
+# === ARASSALYK ===
+rm -f "$TMP_FILE"
 echo "✅ Tamamlandy."
