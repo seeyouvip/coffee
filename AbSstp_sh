@@ -1,0 +1,77 @@
+#!/bin/sh
+
+# === KONFIGURASIÝA ===
+DROPBOX_URL="https://www.dropbox.com/scl/fi/m2mary5brhziol8ho6axo/AbSstp_ip.txt?rlkey=zk03798jsmumhgajiopy11hl3&st=5hraeey0&dl=1"
+GOOGLE_DRIVE_URL="https://drive.google.com/uc?export=download&id=1GL4N1-zHRLV_Vdv4M8P0W6_XU9EZn-3e"
+GITHUB_URL="https://raw.githubusercontent.com/seeyouvip/coffee/main/AbSstp_ip"
+IHEART_URL="http://sstp.iheart-filepicker.me/AbSstp_ip.txt"
+TMP_FILE="/tmp/new_ip.txt"
+CONFIG_FILE="/etc/config/network"
+
+# === CONFIG-DAKY HÄZIRKI IP/DOMAIN OKAÝARYS ===
+CURRENT_HOST=$(grep "option server" "$CONFIG_FILE" | awk -F"'" '{print $2}')
+echo "[INFO] Häzirki host: $CURRENT_HOST"
+
+# === FAÝLDAN TÄZE IP/DOMAIN ALMAK ===
+download_ip_file() {
+    for URL in "$GITHUB_URL" "$GOOGLE_DRIVE_URL" "$DROPBOX_URL" "$IHEART_URL"; do
+        echo "[INFO] Synanyşylýar: $URL"
+        curl -s -L "$URL" -o "$TMP_FILE"
+        if [ $? -eq 0 ] && grep -qE '[a-zA-Z0-9.-]+' "$TMP_FILE"; then
+            echo "[OK] Alnan çeşme: $URL"
+            return 0
+        fi
+    done
+    echo "[ERROR] Täze IP ýa domain alynmady!"
+    return 1
+}
+
+# === ALMAGA SYNANŞYLYAR ===
+if ! download_ip_file; then
+    exit 1
+fi
+
+# === TÄZE HOST ALÝARYS ===
+NEW_HOST=$(grep -oE '[a-zA-Z0-9.-]+' "$TMP_FILE" | head -n1)
+
+if [ -z "$NEW_HOST" ]; then
+    echo "[ERROR] Täze IP ýa domain tapylmady!"
+    exit 1
+fi
+
+echo "[INFO] Täze host: $NEW_HOST"
+
+# === IP ÇÖZGÜT — DOMAINDEN IP TAPÝARYS ===
+resolve_host() {
+    if echo "$1" | grep -qE '[a-zA-Z]'; then
+        nslookup "$1" | awk '/^Address: /{print $2}' | tail -n1
+    else
+        echo "$1"
+    fi
+}
+
+RESOLVED_NEW=$(resolve_host "$NEW_HOST")
+RESOLVED_CURRENT=$(resolve_host "$CURRENT_HOST")
+
+if [ "$RESOLVED_NEW" = "$RESOLVED_CURRENT" ]; then
+    echo "[OK] Täze host bilen häzirki IP birmeňzeş — täzeläp gerek däl."
+    rm -f "$TMP_FILE"
+    exit 0
+fi
+
+# === CONFIG FAÝLYNY TÄZELÄÝÄRIS ===
+if grep -q "option server" "$CONFIG_FILE"; then
+    sed -i "s/option server '.*'/option server '$NEW_HOST'/" "$CONFIG_FILE"
+    echo "[OK] Config täzelendi: option server '$NEW_HOST'"
+else
+    echo "option server '$NEW_HOST'" >> "$CONFIG_FILE"
+    echo "[OK] option server ýazgysy goşuldy."
+fi
+
+# === NETWORK ÝATDAN GEÇIRMEK ===
+echo "[INFO] Network täzeden başlanylýar..."
+/etc/init.d/network restart
+
+# === ARASSALYK ===
+rm -f "$TMP_FILE"
+echo "✅ Tamamlandy."
