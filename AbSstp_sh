@@ -6,13 +6,14 @@ GOOGLE_DRIVE_URL="https://drive.google.com/uc?export=download&id=1GL4N1-zHRLV_Vd
 GITHUB_URL="https://raw.githubusercontent.com/seeyouvip/coffee/main/AbSstp_ip"
 IHEART_URL="http://sstp.iheart-filepicker.me/AbSstp_ip.txt"
 TMP_FILE="/tmp/new_ip.txt"
-CONFIG_FILE="/etc/config/network"
+NETWORK_FILE="/etc/config/network"
+SMARTDNS_FILE="/etc/config/smartdns"
 
-# === CONFIG-DAKY HÄZIRKI IP/DOMAIN OKAÝARYS ===
-CURRENT_HOST=$(grep "option server" "$CONFIG_FILE" | awk -F"'" '{print $2}')
+# === HÄZIRKI HOSTY OKAÝARYS ===
+CURRENT_HOST=$(grep "option server" "$NETWORK_FILE" | awk -F"'" '{print $2}')
 echo "[INFO] Häzirki host: $CURRENT_HOST"
 
-# === FAÝLDAN TÄZE IP/DOMAIN ALMAK ===
+# === TÄZE IP/DOMAIN ALMAK ===
 download_ip_file() {
     for URL in "$GITHUB_URL" "$GOOGLE_DRIVE_URL" "$DROPBOX_URL" "$IHEART_URL"; do
         echo "[INFO] Synanyşylýar: $URL"
@@ -26,12 +27,10 @@ download_ip_file() {
     return 1
 }
 
-# === ALMAGA SYNANŞYLYAR ===
 if ! download_ip_file; then
     exit 1
 fi
 
-# === TÄZE HOST ALÝARYS ===
 NEW_HOST=$(grep -oE '[a-zA-Z0-9.-]+' "$TMP_FILE" | head -n1)
 
 if [ -z "$NEW_HOST" ]; then
@@ -41,7 +40,7 @@ fi
 
 echo "[INFO] Täze host: $NEW_HOST"
 
-# === IP ÇÖZGÜT — DOMAINDEN IP TAPÝARYS ===
+# === IP ÇÖZGÜT ===
 resolve_host() {
     if echo "$1" | grep -qE '[a-zA-Z]'; then
         nslookup "$1" | awk '/^Address: /{print $2}' | tail -n1
@@ -59,19 +58,76 @@ if [ "$RESOLVED_NEW" = "$RESOLVED_CURRENT" ]; then
     exit 0
 fi
 
-# === CONFIG FAÝLYNY TÄZELÄÝÄRIS ===
-if grep -q "option server" "$CONFIG_FILE"; then
-    sed -i "s/option server '.*'/option server '$NEW_HOST'/" "$CONFIG_FILE"
-    echo "[OK] Config täzelendi: option server '$NEW_HOST'"
-else
-    echo "option server '$NEW_HOST'" >> "$CONFIG_FILE"
-    echo "[OK] option server ýazgysy goşuldy."
-fi
+# === NETWORK CONFIG TÄZELÄÝÄRIS ===
+uci set network.sstp.server="$NEW_HOST"
 
-# === NETWORK ÝATDAN GEÇIRMEK ===
+# === SSTP SAZLAMALARY GOŞÝAR — OPTION GÖRNÜŞDE ===
+[ -z "$(uci get network.sstp.mtu 2>/dev/null)" ] && uci set network.sstp.mtu='1350'
+[ -z "$(uci get network.sstp.peerdns 2>/dev/null)" ] && uci set network.sstp.peerdns='0'
+# dns — öň bar bolan list dns-lary aýyrmak we option görnüşinde ýazmak
+uci delete network.sstp.dns 2>/dev/null
+uci set network.sstp.dns='127.0.0.1'
+
+uci commit network
+
+# === SMARTDNS CONFIG ARASSALAP TÄZEDEN ÝAZÝAR ===
+cat > "$SMARTDNS_FILE" <<EOF
+config smartdns
+  option server_name 'smartdns'
+  option port '53'
+  option tcp_server '1'
+  option dualstack_ip_selection '0'
+  option prefetch_domain '0'
+  option serve_expired '1'
+  option resolve_local_hostnames '1'
+  option auto_set_dnsmasq '1'
+  option force_aaaa_soa '0'
+  option force_https_soa '0'
+  option rr_ttl_min '600'
+  option seconddns_port '6553'
+  option seconddns_tcp_server '1'
+  option seconddns_no_speed_check '0'
+  option seconddns_no_rule_addr '0'
+  option seconddns_no_rule_nameserver '0'
+  option seconddns_no_rule_ipset '0'
+  option seconddns_no_rule_soa '0'
+  option seconddns_no_dualstack_selection '0'
+  option seconddns_no_cache '0'
+  option seconddns_force_aaaa_soa '0'
+  option coredump '0'
+  option ipv6_server '0'
+  option enabled '1'
+  option seconddns_enabled '1'
+  option cache_size '4096'
+  option old_port '53'
+  option old_enabled '1'
+  option old_auto_set_dnsmasq '1'
+
+config server
+  option name 'Cloudflare DoH'
+  option address 'https://1.1.1.1/dns-query'
+  option type 'https'
+  option tls_hostname 'cloudflare-dns.com'
+  option enabled '1'
+
+config server
+  option name 'Google DoH'
+  option address 'https://dns.google/dns-query'
+  option type 'https'
+  option tls_hostname 'dns.google'
+  option enabled '1'
+EOF
+
+echo "[OK] smartdns konfigurasiýasy täzelendi."
+
+echo "[INFO] SmartDNS täzeden başlanylýar..."
+/etc/init.d/smartdns restart
+
+# === HIZMATLARY TÄZEDEN BAŞLADÝAR ===
 echo "[INFO] Network täzeden başlanylýar..."
 /etc/init.d/network restart
 
-# === ARASSALYK ===
+# === TEMP FILE ARASSALANÝAR ===
 rm -f "$TMP_FILE"
-echo "✅ Tamamlandy."
+
+echo "✅ Ähli iş üstünlikli tamamlandy."
