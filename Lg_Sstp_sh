@@ -123,20 +123,28 @@ EOF
 echo "[OK] smartdns konfigurasiýasy täzelendi."
 
 # === SYSCTL NETWORK TIZLIGI SAZLAMALARY ===
-echo "[INFO] Network tizligini ýokarlandyrmak üçin sysctl sazlamalar girizilýär..."
-cat >> /etc/sysctl.conf <<EOF
+echo "[INFO] Network tizligini yokarlandyrmak ucin sysctl sazlamalar girizilyar..."
 
-# === Custom OpenWrt performance tuning ===
-net.ipv4.ip_forward=1
-net.ipv4.tcp_syncookies=1
-net.ipv4.tcp_mtu_probing=1
-net.ipv4.tcp_sack=1
-net.core.default_qdisc=fq
-net.ipv4.tcp_congestion_control=bbr
-net.ipv4.tcp_window_scaling=1
-EOF
+add_sysctl_setting() {
+    SETTING="$1"
+    FILE="/etc/sysctl.conf"
+    if ! grep -q "^$SETTING" "$FILE"; then
+        echo "$SETTING" >> "$FILE"
+        echo "[ADDED] $SETTING"
+    else
+        echo "[SKIPPED] $SETTING eyyam bar"
+    fi
+}
 
-sysctl -p
+add_sysctl_setting "net.ipv4.ip_forward=1"
+add_sysctl_setting "net.ipv4.tcp_syncookies=1"
+add_sysctl_setting "net.ipv4.tcp_mtu_probing=1"
+add_sysctl_setting "net.ipv4.tcp_sack=1"
+add_sysctl_setting "net.core.default_qdisc=fq"
+add_sysctl_setting "net.ipv4.tcp_congestion_control=bbr"
+add_sysctl_setting "net.ipv4.tcp_window_scaling=1"
+
+#sysctl -p
 
 echo "[INFO] SmartDNS täzeden başlanylýar..."
 /etc/init.d/smartdns restart
