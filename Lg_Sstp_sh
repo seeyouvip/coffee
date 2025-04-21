@@ -74,7 +74,9 @@ uci commit network
 cat > "$SMARTDNS_FILE" <<EOF
 config smartdns
   option server_name 'smartdns'
-  option port '53'
+  option port '6053'
+  option bind '127.0.0.1'
+  option dns_forward 'true'
   option tcp_server '1'
   option dualstack_ip_selection '0'
   option prefetch_domain '0'
