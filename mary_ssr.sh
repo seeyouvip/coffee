@@ -1,8 +1,8 @@
 #!/bin/sh
 
 # === KONFIGURASIÝA ===
-DROPBOX_URL="https://www.dropbox.com/scl/fi/n6lvhvmskif6ikih6c4i9/Mary_ip.ssr.txt?rlkey=pfko6m525xiwv97qdidxezhvl&st=3x0fj081&dl=1"
-GOOGLE_DRIVE_URL="https://drive.google.com/uc?export=download&id=1sacbu-pjM1VRkURkZo5xRot5-awhto"
+DROPBOX_URL="https://www.dropbox.com/scl/fi/n6lvhvmskif6ikih6c4i9/Mary_ip.ssr.txt?rlkey=pfko6m525xiwv97qdidxezhvl&st=szw2ny6q&dl=1"
+GOOGLE_DRIVE_URL="https://drive.google.com/uc?export=download&id=1sacbu-pjM1VRkURXj2Zo5xRot5-awhto"
 GITHUB_URL="https://raw.githubusercontent.com/seeyouvip/coffee/main/mary_ip.ssr"
 IHEART_URL="http://iheart-filepicker.me/mary_ip.ssr.txt"
 
