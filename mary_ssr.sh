@@ -61,18 +61,36 @@ fi
 sed -i "s/\"server\": \".*\"/\"server\": \"$NEW_HOST\"/" "$CONFIG_LOCAL"
 sed -i "s/\"server_port\": [0-9]\+/\"server_port\": $PORT/" "$CONFIG_LOCAL"
 sed -i "s/\"password\": \".*\"/\"password\": \"$PASSWORD\"/" "$CONFIG_LOCAL"
+# SSR sahypalary boş edilýär
+sed -i "s/\"protocol\": \".*\"/\"protocol\": \"\"/" "$CONFIG_LOCAL"
+sed -i "s/\"protocol_param\": \".*\"/\"protocol_param\": \"\"/" "$CONFIG_LOCAL"
+sed -i "s/\"obfs\": \".*\"/\"obfs\": \"\"/" "$CONFIG_LOCAL"
+sed -i "s/\"obfs_param\": \".*\"/\"obfs_param\": \"\"/" "$CONFIG_LOCAL"
 
 # === ss-redir.json hem täzelenýär ===
 sed -i "s/\"server\": \".*\"/\"server\": \"$NEW_HOST\"/" "$CONFIG_REDIR"
 sed -i "s/\"server_port\": [0-9]\+/\"server_port\": $PORT/" "$CONFIG_REDIR"
 sed -i "s/\"password\": \".*\"/\"password\": \"$PASSWORD\"/" "$CONFIG_REDIR"
+# SSR sahypalary boş edilýär
+sed -i "s/\"protocol\": \".*\"/\"protocol\": \"\"/" "$CONFIG_REDIR"
+sed -i "s/\"protocol_param\": \".*\"/\"protocol_param\": \"\"/" "$CONFIG_REDIR"
+sed -i "s/\"obfs\": \".*\"/\"obfs\": \"\"/" "$CONFIG_REDIR"
+sed -i "s/\"obfs_param\": \".*\"/\"obfs_param\": \"\"/" "$CONFIG_REDIR"
 
 echo "[OK] ss-local we ss-redir faýllar täzelendi."
 
 # === NVRAM maglumatlary ýazylýar ===
+nvram set ss_type="0"
 nvram set ss_server="$NEW_HOST"
 nvram set ss_server_port="$PORT"
 nvram set ss_key="$PASSWORD"
+nvram set ss_method="chacha20-ietf-poly1305"
+nvram set ss_enable="1"
+# SSR sahypalary boş edilýär
+nvram set ss_obfs=""
+nvram set ss_obfs_param=""
+nvram set ss_protocol=""
+nvram set ss_protocol_param=""
 nvram commit
 
 # === SSR täzeden başlanylýar ===
